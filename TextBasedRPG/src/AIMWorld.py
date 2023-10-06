@@ -4,9 +4,13 @@ from typing import List, Optional
 from LLMConversation import LLMConvo
 from LLMConversation import readMarkdownFile
 from AIMImageGeneration import SDXLGenerator
+from AIMImageGeneration import GenerationOption
+from PIL import Image
+
 
 class MAIWorld:
-    def __init__(self, description: str = ""):
+    def __init__(self,
+                 description: str = ""):
         self.name: str = ""
         self.userDescription: str = description
         self.gptDescription: str = ""
@@ -65,12 +69,14 @@ class MAIWorld:
         return parsedCard
 
 
-world: MAIWorld = MAIWorld("The Star Wars Universe")
+world: MAIWorld = MAIWorld(readMarkdownFile("../Prompts/WorldDescriptions/murica.md"))
 world.generateGPTDescription()
 
-generator: SDXLGenerator = SDXLGenerator()
+# generator: SDXLGenerator = SDXLGenerator()
 
 for i in range(5):
     card: AIMCard.LandCard = world.generateLandCard()
     print(card.generateImageString(world.gptDescription))
-    (card.generateImage(generator)).show()
+    image: Image = card.generateImage(genOption=GenerationOption.ClipDrop)
+    image.show()
+    image.save("../Media/Outs/" + card.name + ".png")

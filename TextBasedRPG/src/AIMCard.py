@@ -5,7 +5,8 @@ from LLMConversation import LLMConvo
 from LLMConversation import readMarkdownFile
 from PIL import Image
 from AIMImageGeneration import SDXLGenerator
-
+from AIMImageGeneration import generateClipDropImage
+from AIMImageGeneration import GenerationOption
 
 class CardType(Enum):
     """Enum for card types."""
@@ -118,8 +119,11 @@ class LandCard:
                                              70) + "--style Fine Art, Painted, Color, Intricate"
         return self.imageString
 
-    def generateImage(self, generator: SDXLGenerator) -> Image:
-        return generator.generateSDXLImage(self.imageString)
+    def generateImage(self, generator: SDXLGenerator = None, genOption: GenerationOption = GenerationOption.SDXL) -> Image:
+        if genOption is GenerationOption.SDXL:
+            return generator.generateSDXLImage(self.imageString)
+        elif genOption is GenerationOption.ClipDrop:
+            return generateClipDropImage(self.imageString)
 
 
 def parseLandCard(data: Union[str, Dict[str, Any]]) -> Optional[LandCard]:
@@ -151,8 +155,8 @@ def cutStringToLength(inputStr: str, numWords: int) -> Optional[str]:
     """
     Cut the input string to a certain number of words.
 
-    :param input_str: The input string to be cut.
-    :param num_words: The number of words to keep.
+    :param inputStr: The input string to be cut.
+    :param numWords: The number of words to keep.
     :return: The resulting string with only `num_words` words, or None if `input_str` is empty.
     """
     if not inputStr:

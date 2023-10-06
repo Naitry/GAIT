@@ -5,6 +5,13 @@ from diffusers import DiffusionPipeline
 import matplotlib.pyplot as plt
 import torch
 from typing import Any
+from enum import Enum
+
+
+class GenerationOption(Enum):
+    """Enum for card types."""
+    ClipDrop = "ClipDrop"
+    SDXL = "SDXL"
 
 
 class SDXLGenerator:
@@ -26,7 +33,8 @@ class SDXLGenerator:
                                                              variant="fp16")
         self.refinerPipe.to("cuda")
 
-    def generateSDXLImage(self, prompt: str) -> Any:
+    def generateSDXLImage(self,
+                          prompt: str) -> Any:
         """
         Generates an image based on the given prompt.
 
