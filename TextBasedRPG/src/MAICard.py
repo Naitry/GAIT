@@ -1,7 +1,10 @@
 from enum import Enum
 from typing import Dict, Any, List, Union, Optional
 import json
-
+from LLMConversation import LLMConvo
+from LLMConversation import readMarkdownFile
+from PIL import Image
+from MAIImageGeneration import generateSDXLImage
 
 class CardType(Enum):
     """Enum for card types."""
@@ -65,16 +68,57 @@ class LandCard:
                  color: str,
                  resource: str,
                  description: str) -> None:
-        self.name = name
-        self.color = color
-        self.resource = resource
-        self.description = description
-        self.card_type = CardType.LAND
+        self.name: str = name
+        self.color: str = color
+        self.resource: str = resource
+        self.description: str = description
+        self.cardType: CardType = CardType.LAND
+        self.imageString: str = ''
+        self.image: Image = None
 
     def display(self) -> None:
         """Display the details of the Land card."""
-        print(f"Name: {self.name}, Type: {self.card_type.value}, Color: {self.color}, Resource: {self.resource}")
+        print(f"Name: {self.name}, Type: {self.cardType.value}, Color: {self.color}, Resource: {self.resource}")
         print(f"Description: {self.description}")
+
+    def toDict(self) -> Dict[str, str]:
+        """
+        Convert the LandCard object to a dictionary.
+
+        :return: Dictionary representation of the LandCard object.
+        """
+        return {
+            "name": self.name,
+            "color": self.color,
+            "resource": self.resource,
+            "description": self.description,
+            "card_type": "LAND"
+        }
+
+    def landCardToJson(self) -> str:
+        """
+        Converts a LandCard object to a JSON-formatted string.
+
+        :return: A JSON-formatted string representing the LandCard object.
+        """
+        landCardDict = self.toDict()
+        jsonString = json.dumps(landCardDict, indent=4)
+        return jsonString
+
+    def generateImageString(self, worldDescription: str):
+        generationConvo: LLMConvo = LLMConvo()
+
+        generationConvo.addSystemMessage(readMarkdownFile("../Prompts/WorldPrompts/LandPrompts/LandToImagePrompt.md") +
+                                         worldDescription)
+
+        generationConvo.addUserMessage(self.landCardToJson())
+
+        self.imageString = cutStringToLength(generationConvo.requestResponse(), 70) + "--style Fine Art, Painted, Color, Intricate"
+        return self.imageString
+
+    def generateImage(self) -> Image:
+        return generateSDXLImage(self.imageString)
+
 
 
 def parseLandCard(data: Union[str, Dict[str, Any]]) -> Optional[LandCard]:
@@ -102,6 +146,23 @@ def parseLandCard(data: Union[str, Dict[str, Any]]) -> Optional[LandCard]:
         return None
 
 
+def cutStringToLength(inputStr: str, numWords: int) -> Optional[str]:
+    """
+    Cut the input string to a certain number of words.
+
+    :param input_str: The input string to be cut.
+    :param num_words: The number of words to keep.
+    :return: The resulting string with only `num_words` words, or None if `input_str` is empty.
+    """
+    if not inputStr:
+        return None
+
+    words = inputStr.split()
+
+    if len(words) <= numWords:
+        return inputStr
+
+    return ' '.join(words[:numWords])
 def landCardDescriptorList(land_cards: List[Optional[LandCard]]) -> List[str]:
     """Generate a list of basic descriptors for each LandCard object.
 

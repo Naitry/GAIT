@@ -27,8 +27,7 @@ def readMarkdownFile(filePath: str) -> Optional[str]:
 
 class LLMConvo:
     def __init__(self) -> None:
-        # openai.api_key = "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"
-        openai.api_key = "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"
+        openai.api_key = "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"
         self.messages: List[Dict[str, str]] = []
 
     def addSystemMessage(self, message: str):
@@ -49,9 +48,9 @@ class LLMConvo:
             "content": message
         })
 
-    def requestResponse(self) -> str:
+    def requestResponse(self, addToConvo: bool = False) -> str:
         response: Any = openai.ChatCompletion.create(
-            model="gpt-3.5-turbo-16k",
+            model="gpt-3.5-turbo",
             messages=self.messages,
             temperature=1,
             max_tokens=256,
@@ -60,53 +59,6 @@ class LLMConvo:
             presence_penalty=0
         )
         assistantMessage = response['choices'][0]['message']['content']
-        self.addAssistantMessage(assistantMessage)
+        if addToConvo:
+            self.addAssistantMessage(assistantMessage)
         return assistantMessage
-
-
-
-def chatWithGPT(conversation: List[Dict[str, str]], newMessage: str) -> str:
-    """
-    A function to continue a conversation with GPT-3.5 Turbo.
-
-    Args:
-        conversation (List[Dict[str, str]]): Existing conversation messages.
-        newMessage (str): New message from the user to add to the conversation.
-
-    Returns:
-        str: The GPT-3.5 Turbo response.
-    """
-    # Append the new user message to the conversation
-    conversation.append({
-        "role": "user",
-        "content": newMessage
-    })
-
-    # Make the API call
-    response: Any = openai.ChatCompletion.create(
-        model="gpt-4",
-        messages=conversation,
-        temperature=1,
-        max_tokens=256,
-        top_p=1,
-        frequency_penalty=0,
-        presence_penalty=0
-    )
-
-    # Extract the assistant's message and add it to the conversation
-    assistantMessage = response['choices'][0]['message']['content']
-    conversation.append({
-        "role": "assistant",
-        "content": assistantMessage
-    })
-
-    return assistantMessage
-
-
-# Initialize the conversation
-initialConversation = [
-    {
-        "role": "system",
-        "content": readMarkdownFile("../prompts/MAIInit1.md")
-    }
-]
