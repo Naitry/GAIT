@@ -1,16 +1,16 @@
-from MAICard import CardType
-import MAICard
+from AIMCard import CardType
+import AIMCard
 from typing import List, Optional
 from LLMConversation import LLMConvo
 from LLMConversation import readMarkdownFile
-
+from AIMImageGeneration import SDXLGenerator
 
 class MAIWorld:
     def __init__(self, description: str = ""):
         self.name: str = ""
         self.userDescription: str = description
         self.gptDescription: str = ""
-        self.Lands: List[MAICard.LandCard] = []
+        self.Lands: List[AIMCard.LandCard] = []
         self.numLands: int = 5
 
     def generateGPTDescription(self) -> str:
@@ -31,10 +31,10 @@ class MAIWorld:
         self.gptDescription = generationConvo.requestResponse()
         return self.gptDescription
 
-    def generateLandCard(self) -> MAICard.LandCard:
+    def generateLandCard(self) -> AIMCard.LandCard:
         print("generating land card")
         response: str
-        parsedCard: Optional[MAICard.LandCard]  # Assuming MAICard.parseLandCard returns Optional[LandCard]
+        parsedCard: Optional[AIMCard.LandCard]  # Assuming MAICard.parseLandCard returns Optional[LandCard]
 
         generationConvo: LLMConvo = LLMConvo()
         prompt: str = readMarkdownFile("../Prompts/WorldPrompts/LandPrompts/GenerateLand.md") + self.gptDescription
@@ -52,7 +52,7 @@ class MAIWorld:
         while True:
             response = generationConvo.requestResponse()
 
-            parsedCard = MAICard.parseLandCard(response)  # Replace with your parsing function if different
+            parsedCard = AIMCard.parseLandCard(response)  # Replace with your parsing function if different
             if parsedCard:
                 print("Successfully parsed the Land Card!")
                 # parsedCard.display()
@@ -65,10 +65,12 @@ class MAIWorld:
         return parsedCard
 
 
-world: MAIWorld = MAIWorld("Mobile Suit Gundam: Universal Century Timeline")
+world: MAIWorld = MAIWorld("The Star Wars Universe")
 world.generateGPTDescription()
 
+generator: SDXLGenerator = SDXLGenerator()
+
 for i in range(5):
-    card: MAICard.LandCard = world.generateLandCard()
+    card: AIMCard.LandCard = world.generateLandCard()
     print(card.generateImageString(world.gptDescription))
-    (card.generateImage()).show()
+    (card.generateImage(generator)).show()

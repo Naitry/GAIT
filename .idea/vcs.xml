@@ -2,5 +2,8 @@
 <project version="4">
   <component name="VcsDirectoryMappings">
     <mapping directory="" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/HFModels/IllusionDiffusion" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/TextBasedRPG/Models/stable-diffusion-xl-base-1.0" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/TextBasedRPG/Models/stable-diffusion-xl-refiner-1.0" vcs="Git" />
   </component>
 </project>
