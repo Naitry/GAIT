@@ -4,6 +4,7 @@ import random
 from diffusers import (
     AutoencoderKL,
     StableDiffusionControlNetPipeline,
+    StableDiffusionXLControlNetPipeline,
     ControlNetModel,
     StableDiffusionControlNetImg2ImgPipeline,
     DPMSolverMultistepScheduler,  # <-- Added import
@@ -13,15 +14,15 @@ import time
 from torchvision.transforms import ToPILImage
 from torchvision.transforms import Pad
 
-BASE_MODEL = "SG161222/Realistic_Vision_V5.1_noVAE"
+BASE_MODEL = "../Models/stable-diffusion-xl-base-1.0"
 
 # Initialize both pipelines
 vae = AutoencoderKL.from_pretrained("stabilityai/sd-vae-ft-mse", torch_dtype=torch.float16)
 controlnet = ControlNetModel.from_pretrained("monster-labs/control_v1p_sd15_qrcode_monster", torch_dtype=torch.float16)
 main_pipe = StableDiffusionControlNetPipeline.from_pretrained(
-    BASE_MODEL,
-    controlnet=controlnet,
+    pretrained_model_name_or_path=BASE_MODEL,
     vae=vae,
+    controlnet=controlnet,
     safety_checker=None,
     torch_dtype=torch.float16,
 ).to("cuda")
