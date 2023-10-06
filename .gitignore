@@ -1,3 +1,6 @@
 
 TextBasedRPG/Models/stable-diffusion-xl-base-1.0/
 TextBasedRPG/Models/stable-diffusion-xl-refiner-1.0/
+TextBasedRPG/Models/controlnet-canny-sdxl-1.0/
+HFModels/IllusionDiffusion/
+TextBasedRPG/Models/controlnet-qr-pattern-sdxl/
