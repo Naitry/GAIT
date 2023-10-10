@@ -70,13 +70,19 @@ class MAIWorld:
 
 
 world: MAIWorld = MAIWorld(readMarkdownFile("../Prompts/WorldDescriptions/murica.md"))
-world.generateGPTDescription()
+print("User Description:")
+print(world.userDescription)
 
-# generator: SDXLGenerator = SDXLGenerator()
+world.generateGPTDescription()
+print("GPT Description:")
+print(world.gptDescription)
+
+generator: SDXLGenerator = SDXLGenerator()
 
 for i in range(5):
     card: AIMCard.LandCard = world.generateLandCard()
     print(card.generateImageString(world.gptDescription))
-    image: Image = card.generateImage(genOption=GenerationOption.ClipDrop)
+    image: Image = card.generateImage(generator=generator,
+                                      genOption=GenerationOption.ClipDrop)
     image.show()
     image.save("../Media/Outs/" + card.name + ".png")

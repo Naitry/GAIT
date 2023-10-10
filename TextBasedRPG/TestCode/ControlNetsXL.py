@@ -32,7 +32,7 @@ pipe.enable_model_cpu_offload()
 image = pipe(
     prompt=prompt,
     negative_prompt=negative_prompt,
-    guidance_scale=30.0,
+    guidance_scale=25.0,
     controlnet_conditioning_scale=1.5,
     num_inference_steps=50,
     image=image
