@@ -8,7 +8,7 @@ from AIMImageGeneration import GenerationOption
 from PIL import Image
 
 
-class MAIWorld:
+class AIMWorld:
     def __init__(self,
                  description: str = ""):
         self.name: str = ""
@@ -69,20 +69,20 @@ class MAIWorld:
         return parsedCard
 
 
-world: MAIWorld = MAIWorld(readMarkdownFile("../Prompts/WorldDescriptions/murica.md"))
-print("User Description:")
-print(world.userDescription)
-
-world.generateGPTDescription()
-print("GPT Description:")
-print(world.gptDescription)
-
-generator: SDXLGenerator = SDXLGenerator()
-
-for i in range(5):
-    card: AIMCard.LandCard = world.generateLandCard()
-    print(card.generateImageString(world.gptDescription))
-    image: Image = card.generateImage(generator=generator,
-                                      genOption=GenerationOption.ClipDrop)
-    image.show()
-    image.save("../Media/Outs/" + card.name + ".png")
+# world: AIMWorld = AIMWorld(readMarkdownFile("../Prompts/WorldDescriptions/murica.md"))
+# print("User Description:")
+# print(world.userDescription)
+#
+# world.generateGPTDescription()
+# print("GPT Description:")
+# print(world.gptDescription)
+#
+# # generator: SDXLGenerator = SDXLGenerator()
+#
+# for i in range(5):
+#     card: AIMCard.LandCard = world.generateLandCard()
+#     print(card.generateImageString(world.gptDescription))
+#     image: Image = card.generateImage(generator=None,
+#                                       genOption=GenerationOption.ClipDrop)
+#     image.show()
+#     image.save("../Media/Outs/" + card.name + ".png")
