@@ -6,6 +6,9 @@ The text to image model which will be used is stable-diffusion-xl-base-1.0
 
 The prompt should vividly bring to life the scenery of the land described, but also seek to maintain a concurrent theme.
 If you have contextual knowledge of the land you should include descriptions of known places and the inhabitants, trying to be as accurate as possible.
+
+Emphasize known inhabitants, objects, and sites of the world.
+
 Keep the response descriptive, but punctual
 It should be between 30 and 40 words
 The prompt returned should follow the general format of {prefix descriptors}, {scene}, {suffix descriptors} 
