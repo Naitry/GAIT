@@ -1,4 +1,5 @@
 from flask import Flask, request, jsonify, Response, session, send_file
+import base64
 from io import BytesIO
 from AIMImageGeneration import GenerationOption
 from AIMWorld import AIMWorld
@@ -24,12 +25,12 @@ def getLand() -> Union[Response, str]:
     image: Image = card.generateImage(generator=None,
                                       genOption=GenerationOption.ClipDrop)
 
-    # Create a BytesIO object and save the image to it
-    byte_io = BytesIO()
-    image.save(byte_io, 'PNG')
-    byte_io.seek(0)
+    # Convert the image to Base64
+    buffered = BytesIO()
+    image.save(buffered, format="PNG")
+    img_str = base64.b64encode(buffered.getvalue()).decode("utf-8")
 
-    return send_file(byte_io, mimetype='image/png')
+    return jsonify({"image": img_str, "name": world.name})
 
 
 
