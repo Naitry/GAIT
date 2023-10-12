@@ -1,12 +1,19 @@
 from flask import Flask, request, jsonify, Response, session, send_file
+from flask_cors import CORS  # <-- Add this import
+from gevent.pywsgi import WSGIServer
 from io import BytesIO
 from AIMImageGeneration import GenerationOption
 from AIMWorld import AIMWorld
 from PIL import Image
 from typing import Union
 import AIMCard
+from AIMImageGeneration import SDXLGenerator
+from AIMImageGeneration import GenerationOption
 
 app = Flask(__name__)
+CORS(app)  # <-- Add this line to enable CORS
+
+generator: SDXLGenerator = SDXLGenerator()
 
 
 @app.route('/land', methods=['GET'])
@@ -18,11 +25,13 @@ def getLand() -> Union[Response, str]:
         number: The number to be squared
     """
     world: AIMWorld = AIMWorld(request.args.get('prompt'))
+
     world.generateGPTDescription()
     card: AIMCard.LandCard = world.generateLandCard()
-    print(card.generateImageString(world.gptDescription))
-    image: Image = card.generateImage(generator=None,
-                                      genOption=GenerationOption.ClipDrop)
+    print(card.generateImageString(world.userDescription + '\n' +
+                                   world.gptDescription))
+    image: Image = card.generateImage(generator=generator,
+                                      genOption=GenerationOption.SDXL)
 
     # Create a BytesIO object and save the image to it
     byte_io = BytesIO()
@@ -32,6 +41,6 @@ def getLand() -> Union[Response, str]:
     return send_file(byte_io, mimetype='image/png')
 
 
-
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=22555)
+    http_server = WSGIServer(('10.22.98.105', 22555), app)
+    http_server.serve_forever()
