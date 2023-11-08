@@ -1,8 +1,8 @@
-import inspect
 import json
-from typing import Any, Callable
-from typing import Any, get_origin, get_args
 import array
+from typing import Any, Callable, Dict, Tuple, Union, get_args, get_origin, get_type_hints, Optional
+import inspect
+
 
 class gptAssistant(object):
     def __init__ (self) -> None:
@@ -103,7 +103,8 @@ def parseDocstring(docstring: str) -> dict:
 
     return paramDescriptions
 
-def generateParamProperties(name, param, paramDescriptions):
+
+def generateParamProperties(name: str, param: inspect.Parameter, paramDescriptions: Dict[str, Any]) -> Dict[str, Any]:
     # Check if the annotation is a class and extract the name, otherwise default to 'Any'
     if param.annotation != inspect._empty and hasattr(param.annotation, '__name__'):
         paramType = param.annotation.__name__
@@ -112,13 +113,17 @@ def generateParamProperties(name, param, paramDescriptions):
 
     paramDescription = paramDescriptions.get(name, {}).get('description')
     type: str = pythonTypeToJsonSchema(param.annotation)
+
     if type != "array":
         return  {
                 "type": type,
                 "description": paramDescription
                 }
     else:
-        return {
+        itemType = get_args(param.annotation)[0] if get_args(param.annotation) else 'Any'
+        itemJsonType: str = pythonTypeToJsonSchema(itemType)
+
+        return  {
                 "type": type,
                 "description": paramDescription
                 }
