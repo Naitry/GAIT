@@ -2,10 +2,12 @@ from typing import Any, Dict, List
 from typing import Optional
 from LLMConversation import readMarkdownFile
 from openai import OpenAI
+import openai
 import subprocess
+import time
+scriptPath:str = '../shell/setAPI.sh'
 
-subprocess.run(['bash',
-                'source ./shell/setAPI.sh'])
+subprocess.call(f'source {scriptPath}', shell=True, executable='/bin/bash')
 
 client = OpenAI()
 
@@ -38,9 +40,9 @@ assistant = client.beta.assistants.create(
             }],
         model="gpt-4-1106-preview")
 
-thread = client.beta.threads.create()
+thread: openai.beta.threads = client.beta.threads.create()
 
-message = client.beta.threads.messages.create(
+message: openai.beta.threads.messages = client.beta.threads.messages.create(
     thread_id=thread.id,
     role="user",
     content=readMarkdownFile("../markdown/testPrompts/decisionProblems/decisionProblem1.md")
@@ -48,5 +50,21 @@ message = client.beta.threads.messages.create(
 
 run = client.beta.threads.runs.create(
   thread_id=thread.id,
-  assistant_id=assistant.id
+  assistant_id=assistant.id,
+  instructions="make a decision on the given problem"
 )
+
+print(run)
+
+time.sleep(10)
+
+messages: List[openai.beta.threads.messages] = client.beta.threads.messages.list(
+  thread_id=thread.id
+)
+
+print()
+print(len(list(messages)))
+
+for m in messages:
+    print()
+    print(m)
