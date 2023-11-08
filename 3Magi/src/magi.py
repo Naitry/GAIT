@@ -1,13 +1,19 @@
 from typing import Any, Dict, List
 from typing import Optional
-from LLMConversation import readMarkdownFile
+from Utils import readMarkdownFile
 from openai import OpenAI
 import openai
-import subprocess
 import time
-scriptPath:str = '../shell/setAPI.sh'
+import os
 
-subprocess.call(f'source {scriptPath}', shell=True, executable='/bin/bash')
+key:str = readMarkdownFile("../markdown/key.md")
+
+print(key)
+
+os.environ["OPENAI_API_KEY"] = key
+
+myVar = os.environ.get("OPENAI_API_KEY")
+print(myVar)  # Outputs: value
 
 client = OpenAI()
 
