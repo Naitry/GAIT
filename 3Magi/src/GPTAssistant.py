@@ -94,16 +94,12 @@ def parseDocstring(docstring: str) -> dict:
                     currentKey = key
         elif currentParam and currentKey:
             # Continue the current parameter's description or metadata
-            additional_info = line
             if isinstance(paramDescriptions[currentParam][currentKey], str):
-                additional_info = additional_info.strip()
-            paramDescriptions[currentParam][currentKey] += additional_info
+                paramDescriptions[currentParam][currentKey] += line.strip()
 
-    # Strip any extra whitespace from the descriptions and metadata
+    # Strip any extra whitespace from the descriptions
     for param, desc in paramDescriptions.items():
-        for key in desc:
-            if isinstance(desc[key], str):
-                desc[key] = desc[key].strip()
+        desc['description'] = desc['description'].strip()
 
     return paramDescriptions
 
