@@ -1,12 +1,60 @@
 import inspect
 import json
 from typing import Any, Callable
-
+from typing import Any, get_origin, get_args
+import array
 
 class gptAssistant(object):
     def __init__ (self) -> None:
         self.name: str = ""
         self.instructions: str = ""
+
+
+def pythonTypeToJsonSchema(pythonType: Any) -> str:
+    """
+    Converts Python type annotations to JSON schema types.
+
+    :param pythonType: A Python type or type annotation.
+    :return: A string representing the JSON schema type.
+    """
+    # Define a mapping of Python types to JSON schema types
+    typeMapping = {
+        bool: 'boolean',
+        int: 'integer',
+        float: 'number',
+        str: 'string',
+        type(None): 'null'  # Handle the NoneType for optional type annotations
+    }
+
+    # If the type is directly in the mapping, return it
+    if pythonType in typeMapping:
+        return typeMapping[pythonType]
+
+    # Handle generic types from typing module
+    originType = get_origin(pythonType)
+    if originType:
+        # Example for List, Dict; you can extend this as needed
+        if issubclass(originType, list):
+            return 'array'
+        elif issubclass(originType, dict):
+            return 'object'
+
+    # If a custom mapping for a user-defined class is needed
+    if hasattr(pythonType, '__name__'):
+        customTypeMapping = {
+            # 'CustomClass': 'object',  # Example of a custom class to JSON type
+            # You can add more custom mappings here
+        }
+        return customTypeMapping.get(pythonType.__name__, 'string')
+
+    # If the type is a typing.Union or similar, you might want to handle it differently
+    # For example, Optional[int] could be translated as type: ['integer', 'null']
+
+    # Fallback to a string type if not specified or unknown
+    return 'string'
+
+
+
 
 def parseDocstring(docstring: str) -> dict:
     """
@@ -18,35 +66,66 @@ def parseDocstring(docstring: str) -> dict:
     lines = docstring.split('\n')
     paramDescriptions = {}
     currentParam = None
-    currentMetadata = None
+    currentKey = None
 
     for line in lines:
         line = line.strip()
         if line.startswith(':param'):
-            parts = line.split(':')
-            if len(parts) >= 3:
-                currentParam = parts[2].strip().split(' ')[0]
-                paramDescriptions[currentParam] = {'description': parts[2].strip()[len(currentParam) + 1:].strip()}
-                currentMetadata = paramDescriptions[currentParam]
-        elif currentParam and line.startswith('-'):
-            metadata_parts = line[1:].strip().split(': ')
-            if len(metadata_parts) == 2:
-                key, value = metadata_parts
-                if key in ['minimum', 'maximum', 'default']:
-                    try:
-                        value = float(value) if '.' in value else int(value)
-                    except ValueError:
-                        pass  # Handle the case where the value is not a valid number
-                currentMetadata[key] = value
-        elif currentParam and line and not line.startswith(':'):
-            # Ensures currentMetadata is not None before attempting to append to description
-            if currentMetadata is not None:
-                currentMetadata['description'] += ' ' + line
-            else:
-                # This branch should not be normally reached if the docstring is well-formed
-                print(f"Warning: Unexpected line in docstring for parameter {currentParam}: {line}")
+            _, param_name = line.split(' ', 1)
+            currentParam, _ = param_name.split(':', 1)
+            currentParam = currentParam.strip()
+            paramDescriptions[currentParam] = {'description': ''}
+            currentKey = 'description'
+        elif line.startswith('-'):
+            # This line contains additional metadata for the parameter
+            if currentParam:
+                meta_parts = line.lstrip('- ').split(': ', 1)
+                if len(meta_parts) == 2:
+                    key, value = meta_parts
+                    key = key.strip()
+                    value = value.strip()
+                    # Cast the value to the appropriate type
+                    if key in ['minimum', 'maximum', 'default']:
+                        try:
+                            value = float(value) if '.' in value else int(value)
+                        except ValueError:
+                            pass  # If casting fails, retain the string value
+                    paramDescriptions[currentParam][key] = value
+                    currentKey = key
+        elif currentParam and currentKey:
+            # Continue the current parameter's description or metadata
+            additional_info = line
+            if isinstance(paramDescriptions[currentParam][currentKey], str):
+                additional_info = additional_info.strip()
+            paramDescriptions[currentParam][currentKey] += additional_info
+
+    # Strip any extra whitespace from the descriptions and metadata
+    for param, desc in paramDescriptions.items():
+        for key in desc:
+            if isinstance(desc[key], str):
+                desc[key] = desc[key].strip()
 
     return paramDescriptions
+
+def generateParamProperties(name, param, paramDescriptions):
+    # Check if the annotation is a class and extract the name, otherwise default to 'Any'
+    if param.annotation != inspect._empty and hasattr(param.annotation, '__name__'):
+        paramType = param.annotation.__name__
+    else:
+        paramType = 'Any'
+
+    paramDescription = paramDescriptions.get(name, {}).get('description')
+    type: str = pythonTypeToJsonSchema(param.annotation)
+    if type != "array":
+        return  {
+                "type": type,
+                "description": paramDescription
+                }
+    else:
+        return {
+                "type": type,
+                "description": paramDescription
+                }
 
 
 def generateToolsConfig(function: Callable) -> str:
@@ -66,18 +145,14 @@ def generateToolsConfig(function: Callable) -> str:
 
     properties = {}
     for name, param in signature.parameters.items():
-        paramType = str(param.annotation) if param.annotation != inspect._empty else 'Any'
-        paramDescription = paramDescriptions.get(name, {}).get('description', f"Description for {name}.")
 
-        properties[name] = {
-            "type": "string" if paramType == 'Any' else paramType.lower(),
-            "description": paramDescription
-        }
+        properties[name] = generateParamProperties(name, param, paramDescriptions)
         # Add additional metadata if present
         if 'minimum' in paramDescriptions.get(name, {}):
             properties[name]['minimum'] = paramDescriptions[name]['minimum']
         if 'maximum' in paramDescriptions.get(name, {}):
             properties[name]['maximum'] = paramDescriptions[name]['maximum']
+
 
     tool = {
         "type": "function",
@@ -94,21 +169,18 @@ def generateToolsConfig(function: Callable) -> str:
 
     return json.dumps(tool, indent=4)
 
-def exampleFunction(decision: bool, confidence: float = 1.0, reasoning: str = "") -> str:
+def exampleFunction(decision: bool, confidence: float, reasoning: str = "") -> str:
     """
     Forces the AI to make a yes/no choice on the situation at hand.
 
     :param decision:
         The answer to the decision, true for yes, false for no.
     :param confidence:
-        Floating point confidence value of the decision.
-        - type: number
-        - minimum: 0
-        - maximum: 1
-        - default: 1.0
+        Floating point confidence values of the decisions.
+        - minimum: 0.0
+        - maximum: 100.0
     :param reasoning:
         The justification as to why the decision was made.
-        - type: string
 
     :return: A string explaining the decision.
     """
@@ -123,7 +195,7 @@ def exampleFunction(decision: bool, confidence: float = 1.0, reasoning: str = ""
         "parameters": {
             "type": "object",
             "properties": {
-                "decision": {"type": "boolean",
+                      "decision": {"type": "boolean",
                              "description": "The answer to the decision, true for yes, false for no."},
                 "confidence": {"type": "number",
                                "minimum": 0,

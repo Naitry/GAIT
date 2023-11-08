@@ -18,36 +18,10 @@ toolsDict = json.loads(tools)
 print(json.dumps(toolsDict, indent=4))
 
 instructions: str = readMarkdownFile("../markdown/personalities/melchior.md")
-print(instructions)
 
 problemPrompt: str = readMarkdownFile("../markdown/testPrompts/decisionProblems/decisionProblem1.md")
-print(problemPrompt)
 
-staticTools = [{
-                "type": "function",
-                "function": {
-                    "name": "makeDecision",
-                    "description": "Forces the AI to make a yes no choice on the situation at hand.",
-                    "parameters": {
-                        "type": "object",
-                        "properties": {
-                            "decision": {"type": "boolean",
-                                         "description": "The answer to the decision, true for yes, false for no."},
-                            "confidence": {"type": "number",
-                                           "minimum": 0,
-                                           "maximum": 1,
-                                           "description": "Floating point confidence value of the decision, 1 for totally confident, 0 for not confident at all, and all percentage values inbetween"},
-                            "reasoning": {
-                                "type": "string",
-                                "description": "The justification as to why the decision was made."}
-                            },
-                        "required": [
-                            "decision"
-                            ]
-                        }
-                    }
-                }]
-
+staticTools = [toolsDict]
 
 runSuccessful: bool = False
 
