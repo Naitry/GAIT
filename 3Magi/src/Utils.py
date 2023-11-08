@@ -1,5 +1,6 @@
 from typing import Any, Dict, List
 from typing import Optional
+import os
 
 def readMarkdownFile(filePath: str) -> Optional[str]:
     """
@@ -13,11 +14,15 @@ def readMarkdownFile(filePath: str) -> Optional[str]:
   """
     try:
         with open(filePath, 'r', encoding='utf-8') as file:
-            content: str = file.read().rstrip()
+            content: str = file.read()
         return content
     except FileNotFoundError:
         print(f"File {filePath} not found.")
         return None
     except Exception as e:
         print(f"An error occurred: {e}")
-        return None
+    return None
+
+def setAPIEnvVar() -> None:
+    key: string = readMarkdownFile("../markdown/key.md").rstrip()
+    os.environ["OPENAI_API_KEY"] = key

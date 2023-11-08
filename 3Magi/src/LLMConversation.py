@@ -6,7 +6,7 @@ from Utils import readMarkdownFile
 key: string = readMarkdownFile("../markdown/key.md")
 os.environ["OPENAI_API_KEY"] = key
 
-myVar = os.environ.get("OPENAI_API_KEYi")
+myVar = os.environ.get("OPENAI_API_KEY")
 print(myVar)  # Outputs: value
 
 client = OpenAI()
