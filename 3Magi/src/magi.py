@@ -54,15 +54,48 @@ run = client.beta.threads.runs.create(
   instructions="make a decision on the given problem"
 )
 
-print(run)
+while run.status != "requires_action":
+    run = client.beta.threads.runs.retrieve(
+            thread_id=thread.id,
+            run_id=run.id
+            )
+    time.sleep(1)
+    print("waiting")
+    print(run.status)
 
-time.sleep(10)
+print(run.required_action)
+
+run  = client.beta.threads.runs.submit_tool_outputs(
+  thread_id=thread.id,
+  run_id=run.id,
+  tool_outputs=[
+      {
+        "tool_call_id": run.required_action.submit_tool_outputs.tool_calls[0].id,
+        "output": True,
+      },
+    ]
+)
+
+run = client.beta.threads.runs.retrieve(
+            thread_id=thread.id,
+            run_id=run.id
+            )
+time.sleep(1)
+print(run.status)
+
+while run.status != "requires_action":
+    run = client.beta.threads.runs.retrieve(
+            thread_id=thread.id,
+            run_id=run.id
+            )
+    time.sleep(1)
+    print("waiting")
+    print(run.status)
 
 messages: List[openai.beta.threads.messages] = client.beta.threads.messages.list(
   thread_id=thread.id
 )
 
-print()
 print(len(list(messages)))
 
 for m in messages:
