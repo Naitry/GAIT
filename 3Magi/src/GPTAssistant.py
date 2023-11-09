@@ -90,11 +90,19 @@ def parseDocstring(docstring: str) -> Dict[str, Any]:
                     key = key.strip()
                     value = value.strip()
                     # Cast the value to the appropriate type
-                    if key in ['minimum', 'maximum', 'default']:
+                    if key in ['minimum',
+                               'maximum',
+                               'default']:
                         try:
                             value = float(value) if '.' in value else int(value)
                         except ValueError:
                             pass  # If casting fails, retain the string value
+                    if key in ['validInputs',
+                               'invalidInputs']:
+                        try:
+                            validationList: list[str] = value.split(",")
+                        except ValueError:
+                            pass
                     paramDescriptions[currentParam][key] = value
                     currentKey = key
         elif currentParam and currentKey:
@@ -123,9 +131,9 @@ def generateParamProperties(name: str,
 
         if not inMatryoshka:
             outProperties['description'] = paramDescription
-        else:
-            for mod, value in paramModifiers.items():
-                outProperties[mod] = value
+
+        for mod, value in paramModifiers.items():
+            outProperties[mod] = value
         return outProperties
 
     else:
@@ -154,6 +162,7 @@ def generateToolsConfig(function: Callable[..., Any]) -> str:
     functionName: str = function.__name__
     paramDescriptions: Dict[str, Any] = parseDocstring(docstring)
 
+    print(paramDescriptions)
     # Prepare the list for 'required' fields
     requiredList: List[str] = [name for name, param in signature.parameters.items() if param.default is inspect.Parameter.empty]
 
@@ -163,11 +172,15 @@ def generateToolsConfig(function: Callable[..., Any]) -> str:
 
         modifierProperties: Dict[str, Any] = {}
 
-        # Add additional metadata if present
-        if 'minimum' in paramDescriptions.get(name, {}):
-            modifierProperties['minimum'] = paramDescriptions[name]['minimum']
-        if 'maximum' in paramDescriptions.get(name, {}):
-            modifierProperties['maximum'] = paramDescriptions[name]['maximum']
+        validModifiers: list[str] = ['minimum',
+                                     'maximum',
+                                     'validInputs',
+                                     'invalidInputs']
+
+        for modifier in validModifiers:
+            if modifier in paramDescriptions.get(name, {}):
+                modifierProperties[modifier] = paramDescriptions[name][modifier]
+
         properties[name] = generateParamProperties(name=name,
                                                    itemType=paramType,
                                                    param=param,
@@ -192,8 +205,11 @@ def generateToolsConfig(function: Callable[..., Any]) -> str:
 
 
 
-"""
-def exampleFunction(decision: bool, confidence: list[list[float]], reasoning: str = "") -> str:
+
+def exampleFunction(decision: bool,
+                    confidence: list[list[float]],
+                    answer: str,
+                    reasoning: str = "") -> str:
     '''
     Forces the AI to make a yes/no choice on the situation at hand.
 
@@ -203,6 +219,9 @@ def exampleFunction(decision: bool, confidence: list[list[float]], reasoning: st
         Floating point confidence values of the decisions.
         - minimum: 0.0
         - maximum: 100.0
+    :param answer:
+        Yes or no string which represents the decision.
+        - validInputs: YES, NO
     :param reasoning:
         The justification as to why the decision was made.
 
@@ -211,6 +230,7 @@ def exampleFunction(decision: bool, confidence: list[list[float]], reasoning: st
     return "Decision made."
 
 
+"""
 [{
     "type": "function",
     "function": {
