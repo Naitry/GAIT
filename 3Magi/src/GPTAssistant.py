@@ -112,6 +112,7 @@ def generateParamProperties(name: str,
                             itemType: any,
                             param: inspect.Parameter,
                             paramDescriptions: Dict[str, Any],
+                            paramModifiers: Dict[str, Any],
                             inMatryoshka: bool=False) -> Dict[str, Any]:
 
     paramDescription = paramDescriptions.get(name, {}).get('description', '')
@@ -122,7 +123,10 @@ def generateParamProperties(name: str,
 
         if not inMatryoshka:
             outProperties['description'] = paramDescription
-        return  outProperties
+        else:
+            for mod, value in paramModifiers.items():
+                outProperties[mod] = value
+        return outProperties
 
     else:
         arrayItemType = get_args(itemType)[0] if get_args(itemType) else 'Any'
@@ -133,6 +137,7 @@ def generateParamProperties(name: str,
                                                     itemType=arrayItemType,
                                                     param=param,
                                                     paramDescriptions=paramDescriptions,
+                                                    paramModifiers=paramModifiers,
                                                     inMatryoshka=True)
         return outProperties
 
@@ -155,15 +160,20 @@ def generateToolsConfig(function: Callable[..., Any]) -> str:
     properties: Dict[str, Dict[str, Any]] = {}
     for name, param in signature.parameters.items():
         paramType: Any = param.annotation if param.annotation is not inspect.Parameter.empty else 'Any'
+
+        modifierProperties: Dict[str, Any] = {}
+
+        # Add additional metadata if present
+        if 'minimum' in paramDescriptions.get(name, {}):
+            modifierProperties['minimum'] = paramDescriptions[name]['minimum']
+        if 'maximum' in paramDescriptions.get(name, {}):
+            modifierProperties['maximum'] = paramDescriptions[name]['maximum']
         properties[name] = generateParamProperties(name=name,
                                                    itemType=paramType,
                                                    param=param,
+                                                   paramModifiers=modifierProperties,
                                                    paramDescriptions=paramDescriptions)
-        # Add additional metadata if present
-        if 'minimum' in paramDescriptions.get(name, {}):
-            properties[name]['minimum'] = paramDescriptions[name]['minimum']
-        if 'maximum' in paramDescriptions.get(name, {}):
-            properties[name]['maximum'] = paramDescriptions[name]['maximum']
+
 
     tool: Dict[str, Any] = {
         "type": "function",
