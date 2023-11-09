@@ -118,56 +118,43 @@ def generateParamProperties(name: str,
     jsonType: str = pythonTypeToJsonSchema(itemType)
 
     if jsonType != "array":
-        if inMatryoshka:
-            return  {
-                    "type": jsonType,
-                    }
-        else:
-            return  {
-                    "type": jsonType,
-                    "description": paramDescription
-                    }
+        outProperties={"type": jsonType}
+
+        if not inMatryoshka:
+            outProperties['description'] = paramDescription
+        return  outProperties
+
     else:
         arrayItemType = get_args(itemType)[0] if get_args(itemType) else 'Any'
-        if inMatryoshka:
-            return  {
-                    "type": jsonType,
-                    "description": paramDescription,
-                    "items":generateParamProperties(name=name,
+        outProperties={"type": jsonType}
+        if not inMatryoshka:
+            outProperties['description'] = paramDescription
+        outProperties['items'] = generateParamProperties(name=name,
                                                     itemType=arrayItemType,
                                                     param=param,
                                                     paramDescriptions=paramDescriptions,
                                                     inMatryoshka=True)
-                    }
-        else:
-            return  {
-                    "type": jsonType,
-                    "description": paramDescription,
-                    "items":generateParamProperties(name=name,
-                                                    itemType=arrayItemType,
-                                                    param=param,
-                                                    paramDescriptions=paramDescriptions,
-                                                    inMatryoshka=True)
-                    }
+        return outProperties
 
-def generateToolsConfig(function: Callable) -> str:
+
+def generateToolsConfig(function: Callable[..., Any]) -> str:
     """
     Generates the 'tools' section of the OpenAI API configuration for a given function.
 
     :param function: A callable function to generate the tools configuration for.
     :return: A JSON string representing the tools configuration.
     """
-    signature = inspect.signature(function)
-    docstring = inspect.getdoc(function) or "No description provided."
-    functionName = function.__name__
-    paramDescriptions = parseDocstring(docstring)
+    signature: inspect.Signature = inspect.signature(function)
+    docstring: str = inspect.getdoc(function) or "No description provided."
+    functionName: str = function.__name__
+    paramDescriptions: Dict[str, Any] = parseDocstring(docstring)
 
     # Prepare the list for 'required' fields
-    requiredList = [name for name, param in signature.parameters.items() if param.default is inspect.Parameter.empty]
+    requiredList: List[str] = [name for name, param in signature.parameters.items() if param.default is inspect.Parameter.empty]
 
-    properties = {}
+    properties: Dict[str, Dict[str, Any]] = {}
     for name, param in signature.parameters.items():
-        paramType: Any = param.annotation if param.annotation else 'Any'
+        paramType: Any = param.annotation if param.annotation is not inspect.Parameter.empty else 'Any'
         properties[name] = generateParamProperties(name=name,
                                                    itemType=paramType,
                                                    param=param,
@@ -178,8 +165,7 @@ def generateToolsConfig(function: Callable) -> str:
         if 'maximum' in paramDescriptions.get(name, {}):
             properties[name]['maximum'] = paramDescriptions[name]['maximum']
 
-
-    tool = {
+    tool: Dict[str, Any] = {
         "type": "function",
         "function": {
             "name": functionName,
