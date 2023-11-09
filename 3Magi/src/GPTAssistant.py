@@ -124,15 +124,14 @@ def generateParamProperties(name: str,
                 }
     else:
         arrayItemType = get_args(itemType)[0] if get_args(itemType) else 'Any'
-        itemJsonType: str = pythonTypeToJsonSchema(arrayItemType)
         return  {
-                "type": type,
-                "Items":{
-                    generateParamProperties(name=name,
-                                            itemType=arrayItemType,
-                                            param=param,
-                                            paramDescriptions=paramDescriptions)
-                    }
+                "type": jsonType,
+                "description": paramDescription,
+                "items":generateParamProperties(name=name,
+                                                itemType=arrayItemType,
+                                                param=param,
+                                                paramDescriptions=paramDescriptions)
+
                 }
 
 
@@ -180,7 +179,7 @@ def generateToolsConfig(function: Callable) -> str:
 
     return json.dumps(tool, indent=4)
 
-def exampleFunction(decision: bool, confidence: float, reasoning: str = "") -> str:
+def exampleFunction(decision: bool, confidence: list[list[float]], reasoning: str = "") -> str:
     """
     Forces the AI to make a yes/no choice on the situation at hand.
 
