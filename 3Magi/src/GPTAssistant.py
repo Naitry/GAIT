@@ -76,6 +76,11 @@ def parseDocstring(docstring: str) -> dict:
             currentParam = currentParam.strip()
             paramDescriptions[currentParam] = {'description': ''}
             currentKey = 'description'
+        elif line.startswith(':return:'):
+            # Handle return description
+            returnDescription = line.replace(':return:', '').strip()
+            currentParam = None  # No current parameter when parsing return description
+            parsingReturn = True
         elif line.startswith('-'):
             # This line contains additional metadata for the parameter
             if currentParam:
@@ -104,28 +109,30 @@ def parseDocstring(docstring: str) -> dict:
     return paramDescriptions
 
 
-def generateParamProperties(name: str, param: inspect.Parameter, paramDescriptions: Dict[str, Any]) -> Dict[str, Any]:
-    # Check if the annotation is a class and extract the name, otherwise default to 'Any'
-    if param.annotation != inspect._empty and hasattr(param.annotation, '__name__'):
-        paramType = param.annotation.__name__
-    else:
-        paramType = 'Any'
+def generateParamProperties(name: str,
+                            itemType: any,
+                            param: inspect.Parameter,
+                            paramDescriptions: Dict[str, Any]) -> Dict[str, Any]:
 
-    paramDescription = paramDescriptions.get(name, {}).get('description')
-    type: str = pythonTypeToJsonSchema(param.annotation)
+    paramDescription = paramDescriptions.get(name, {}).get('description', '')
+    jsonType: str = pythonTypeToJsonSchema(itemType)
 
-    if type != "array":
+    if jsonType != "array":
         return  {
-                "type": type,
+                "type": jsonType,
                 "description": paramDescription
                 }
     else:
-        itemType = get_args(param.annotation)[0] if get_args(param.annotation) else 'Any'
-        itemJsonType: str = pythonTypeToJsonSchema(itemType)
-
+        arrayItemType = get_args(itemType)[0] if get_args(itemType) else 'Any'
+        itemJsonType: str = pythonTypeToJsonSchema(arrayItemType)
         return  {
                 "type": type,
-                "description": paramDescription
+                "Items":{
+                    generateParamProperties(name=name,
+                                            itemType=arrayItemType,
+                                            param=param,
+                                            paramDescriptions=paramDescriptions)
+                    }
                 }
 
 
@@ -146,8 +153,11 @@ def generateToolsConfig(function: Callable) -> str:
 
     properties = {}
     for name, param in signature.parameters.items():
-
-        properties[name] = generateParamProperties(name, param, paramDescriptions)
+        paramType: Any = param.annotation if param.annotation else 'Any'
+        properties[name] = generateParamProperties(name=name,
+                                                   itemType=paramType,
+                                                   param=param,
+                                                   paramDescriptions=paramDescriptions)
         # Add additional metadata if present
         if 'minimum' in paramDescriptions.get(name, {}):
             properties[name]['minimum'] = paramDescriptions[name]['minimum']
