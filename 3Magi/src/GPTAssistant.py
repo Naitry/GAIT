@@ -1,6 +1,6 @@
 import json
 import array
-from typing import Any, Callable, Dict, Tuple, Union, get_args, get_origin, get_type_hints, Optional
+from typing import Any, Type, Callable, Dict, Tuple, Union, get_args, get_origin, get_type_hints, Optional
 import inspect
 
 
@@ -10,7 +10,7 @@ class gptAssistant(object):
         self.instructions: str = ""
 
 
-def pythonTypeToJsonSchema(pythonType: Any) -> str:
+def pythonTypeToJsonSchema(pythonType: Type[Any]) -> str:
     """
     Converts Python type annotations to JSON schema types.
 
@@ -18,7 +18,7 @@ def pythonTypeToJsonSchema(pythonType: Any) -> str:
     :return: A string representing the JSON schema type.
     """
     # Define a mapping of Python types to JSON schema types
-    typeMapping = {
+    typeMapping: dict[Type[Any], str] = {
         bool: 'boolean',
         int: 'integer',
         float: 'number',
@@ -31,7 +31,7 @@ def pythonTypeToJsonSchema(pythonType: Any) -> str:
         return typeMapping[pythonType]
 
     # Handle generic types from typing module
-    originType = get_origin(pythonType)
+    originType: Type[Any] | None = get_origin(pythonType)
     if originType:
         # Example for List, Dict; you can extend this as needed
         if issubclass(originType, list):
@@ -41,7 +41,7 @@ def pythonTypeToJsonSchema(pythonType: Any) -> str:
 
     # If a custom mapping for a user-defined class is needed
     if hasattr(pythonType, '__name__'):
-        customTypeMapping = {
+        customTypeMapping: dict[str, str] = {
             # 'CustomClass': 'object',  # Example of a custom class to JSON type
             # You can add more custom mappings here
         }
@@ -55,8 +55,7 @@ def pythonTypeToJsonSchema(pythonType: Any) -> str:
 
 
 
-
-def parseDocstring(docstring: str) -> dict:
+def parseDocstring(docstring: str) -> Dict[str, Any]:
     """
     Parses the docstring to find parameter descriptions and additional metadata.
 
@@ -64,9 +63,10 @@ def parseDocstring(docstring: str) -> dict:
     :return: A dictionary with parameter names as keys and their descriptions and metadata as values.
     """
     lines = docstring.split('\n')
-    paramDescriptions = {}
-    currentParam = None
-    currentKey = None
+    paramDescriptions: Dict[str, Dict[str, Any]] = {}
+    currentParam: str = ""
+    currentKey: str = ""
+    parsingReturn: bool = False  # Added a flag for return description parsing
 
     for line in lines:
         line = line.strip()
@@ -78,15 +78,15 @@ def parseDocstring(docstring: str) -> dict:
             currentKey = 'description'
         elif line.startswith(':return:'):
             # Handle return description
-            returnDescription = line.replace(':return:', '').strip()
-            currentParam = None  # No current parameter when parsing return description
+            returnDescription: str = line.replace(':return:', '').strip()
+            currentParam = ""  # Reset current parameter when parsing return description
             parsingReturn = True
         elif line.startswith('-'):
             # This line contains additional metadata for the parameter
             if currentParam:
-                meta_parts = line.lstrip('- ').split(': ', 1)
-                if len(meta_parts) == 2:
-                    key, value = meta_parts
+                metaParts = line.lstrip('- ').split(': ', 1)
+                if len(metaParts) == 2:
+                    key, value = metaParts
                     key = key.strip()
                     value = value.strip()
                     # Cast the value to the appropriate type
@@ -99,8 +99,7 @@ def parseDocstring(docstring: str) -> dict:
                     currentKey = key
         elif currentParam and currentKey:
             # Continue the current parameter's description or metadata
-            if isinstance(paramDescriptions[currentParam][currentKey], str):
-                paramDescriptions[currentParam][currentKey] += line.strip()
+            paramDescriptions[currentParam][currentKey] += ' ' + line.strip()
 
     # Strip any extra whitespace from the descriptions
     for param, desc in paramDescriptions.items():
@@ -112,28 +111,44 @@ def parseDocstring(docstring: str) -> dict:
 def generateParamProperties(name: str,
                             itemType: any,
                             param: inspect.Parameter,
-                            paramDescriptions: Dict[str, Any]) -> Dict[str, Any]:
+                            paramDescriptions: Dict[str, Any],
+                            inMatryoshka: bool=False) -> Dict[str, Any]:
 
     paramDescription = paramDescriptions.get(name, {}).get('description', '')
     jsonType: str = pythonTypeToJsonSchema(itemType)
 
     if jsonType != "array":
-        return  {
-                "type": jsonType,
-                "description": paramDescription
-                }
+        if inMatryoshka:
+            return  {
+                    "type": jsonType,
+                    }
+        else:
+            return  {
+                    "type": jsonType,
+                    "description": paramDescription
+                    }
     else:
         arrayItemType = get_args(itemType)[0] if get_args(itemType) else 'Any'
-        return  {
-                "type": jsonType,
-                "description": paramDescription,
-                "items":generateParamProperties(name=name,
-                                                itemType=arrayItemType,
-                                                param=param,
-                                                paramDescriptions=paramDescriptions)
-
-                }
-
+        if inMatryoshka:
+            return  {
+                    "type": jsonType,
+                    "description": paramDescription,
+                    "items":generateParamProperties(name=name,
+                                                    itemType=arrayItemType,
+                                                    param=param,
+                                                    paramDescriptions=paramDescriptions,
+                                                    inMatryoshka=True)
+                    }
+        else:
+            return  {
+                    "type": jsonType,
+                    "description": paramDescription,
+                    "items":generateParamProperties(name=name,
+                                                    itemType=arrayItemType,
+                                                    param=param,
+                                                    paramDescriptions=paramDescriptions,
+                                                    inMatryoshka=True)
+                    }
 
 def generateToolsConfig(function: Callable) -> str:
     """
