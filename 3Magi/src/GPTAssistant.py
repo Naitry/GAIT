@@ -190,8 +190,11 @@ def generateToolsConfig(function: Callable[..., Any]) -> str:
 
     return json.dumps(tool, indent=4)
 
+
+
+"""
 def exampleFunction(decision: bool, confidence: list[list[float]], reasoning: str = "") -> str:
-    """
+    '''
     Forces the AI to make a yes/no choice on the situation at hand.
 
     :param decision:
@@ -204,10 +207,10 @@ def exampleFunction(decision: bool, confidence: list[list[float]], reasoning: st
         The justification as to why the decision was made.
 
     :return: A string explaining the decision.
-    """
+    '''
     return "Decision made."
 
-"""
+
 [{
     "type": "function",
     "function": {
