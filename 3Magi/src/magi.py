@@ -58,7 +58,7 @@ while not runSuccessful:
 
 print(run.required_action)
 
-run  = client.beta.threads.runs.submit_tool_outputs(
+run = client.beta.threads.runs.submit_tool_outputs(
   thread_id=thread.id,
   run_id=run.id,
   tool_outputs=[
