@@ -1,23 +1,6 @@
 import json
-import array
-from typing import Any, \
-	Type, \
-	Callable, \
-	Dict, \
-	Tuple, \
-	Union, \
-	get_args, \
-	get_origin, \
-	get_type_hints, \
-	Optional, \
-	List
+from typing import Any, Type, Callable, Dict, get_args, get_origin, List
 import inspect
-
-
-class gptAssistant(object):
-	def __init__(self) -> None:
-		self.name: str = ""
-		self.instructions: str = ""
 
 
 def pythonTypeToJsonSchema(pythonType: Type[Any]) -> str:
@@ -29,10 +12,10 @@ def pythonTypeToJsonSchema(pythonType: Type[Any]) -> str:
 	"""
 	# Define a mapping of Python types to JSON schema types
 	typeMapping: dict[Type[Any], str] = {
-		bool      : 'boolean',
-		int       : 'integer',
-		float     : 'number',
-		str       : 'string',
+		bool: 'boolean',
+		int: 'integer',
+		float: 'number',
+		str: 'string',
 		type(None): 'null'  # Handle the NoneType for optional type annotations
 	}
 
@@ -211,14 +194,14 @@ def generateToolsConfig(function: Callable[..., Any]) -> str:
 												   paramDescriptions=paramDescriptions)
 
 	tool: Dict[str, Any] = {
-		"type"    : "function",
+		"type": "function",
 		"function": {
-			"name"       : functionName,
+			"name": functionName,
 			"description": docstring,
-			"parameters" : {
-				"type"      : "object",
+			"parameters": {
+				"type": "object",
 				"properties": properties,
-				"required"  : requiredList
+				"required": requiredList
 			}
 		}
 	}
@@ -277,5 +260,3 @@ def exampleFunction(decision: bool,
         }
     }]
 """
-
-

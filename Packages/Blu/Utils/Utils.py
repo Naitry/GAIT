@@ -1,8 +1,4 @@
-from typing import Any, \
-	Dict, \
-	List
 from typing import Optional
-import os
 
 
 def readMarkdownFile(filePath: str) -> Optional[str]:
@@ -27,8 +23,3 @@ def readMarkdownFile(filePath: str) -> Optional[str]:
 	except Exception as e:
 		print(f"An error occurred: {e}")
 	return None
-
-
-def setAPIEnvVar() -> None:
-	key: string = readMarkdownFile("../markdown/key.md").rstrip()
-	os.environ["OPENAI_API_KEY"] = key
