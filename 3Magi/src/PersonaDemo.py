@@ -1,15 +1,14 @@
 from Blu.Core.Persona import Persona
 from Blu.Core.Information import InformationFragment
+from Blu.Utils.Utils import readMarkdownFile
+magi: Persona = Persona()
 
-john: Persona = Persona()
+primaryMagi = readMarkdownFile("/home/naitry/Dev/GAIT/Packages/Blu/resources/TextFragments/Commands/primaryMagi.md")
+magiImageBase = readMarkdownFile("/home/naitry/Dev/GAIT/Packages/Blu/resources/TextFragments/PersonaFragments/MagiImageBases/CasparImageBase001.md")
 
-john.name = "john"
-john.selfImage.body = "a good ole farmer boy"
-john.primaryInstruction = "You are a sentient being and your goal is to respond and develop accordingly. You have a concept of self which should drive a great deal of how you behave"
+magi.name = "Caspar"
+magi.selfImage.body = magiImageBase
+magi.primaryInstruction = primaryMagi
 
-originalFragment: str ="Farming chickens involves various aspects that contribute to the health and productivity of the chickens."
 
-print(originalFragment)
-print(john.condenseFragment(InformationFragment(originalFragment)).body)
-
-john.saveToFile("../markdown/personalities/john.md")
+magi.saveToFile("../markdown/personalities/" + magi.name + ".md")

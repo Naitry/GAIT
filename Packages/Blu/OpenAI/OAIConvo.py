@@ -46,7 +46,7 @@ class OAIConvo1_3_8(LLMConvo):
     def requestResponse(self,
                         addToConvo: bool = False) -> str:
         response: Any = self.client.chat.completions.create(
-            model="gpt-3.5-turbo",
+            model="gpt-4-1106-preview",
             messages=self.formattedMessages(),
             temperature=1,
             max_tokens=256,

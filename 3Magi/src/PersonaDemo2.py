@@ -1,10 +1,19 @@
 from Blu.Core.Persona import Persona
 from Blu.Core.Information import InformationFragment
 
-john: Persona = Persona()
-john.loadFromFile("../markdown/personalities/john.md")
+magi: Persona = Persona()
+magi.loadFromFile("../markdown/personalities/Caspar.md")
 
-originalFragment: str ="Farming chickens involves various aspects that contribute to the health and productivity of the chickens."
+questionList = [
+    "Hi there! How's your day going?",
+    "By the way, I didn't catch your name. What is it?",
+    "I'm curious, what's your take on the latest happenings around the world?",
+    "When you're faced with a new problem, how do you tackle it?",
+    "What is your name?"
+]
 
-print(originalFragment)
-print(john.condenseFragment(InformationFragment(originalFragment)).body)
+
+for question in questionList:
+    print(magi.sayTo(name="Tyler", inputFragment=InformationFragment(question)).body)
+
+magi.saveToFile("../markdown/personalities/CasparOut2_GPT4.md")

@@ -1,21 +1,31 @@
 import json
+from typing import Optional
+
 from Blu.Utils.Utils import readMarkdownFile
 from Blu.LLM.LLMConversation import LLMConvo
 from Blu.OpenAI.OAIConvo import OAIConvo1_3_8
 from Blu.Core.Information import InformationFragment
 from abc import ABC
 
-condenseFragmentCommand = readMarkdownFile("../resources/")
+condenseFragmentCommand = readMarkdownFile(
+	"/home/naitry/Dev/GAIT/Packages/Blu/resources/TextFragments/Commands/condenseFragment.md")
+reflectCommand = readMarkdownFile("/home/naitry/Dev/GAIT/Packages/Blu/resources/TextFragments/Commands/selfReflect.md")
+sayToCommand1 = readMarkdownFile("/home/naitry/Dev/GAIT/Packages/Blu/resources/TextFragments/Commands/sayTo.md")
+sayToCommand2 = readMarkdownFile("/home/naitry/Dev/GAIT/Packages/Blu/resources/TextFragments/Commands/sayToPt2.md")
+selfImageFunctionalDescription = readMarkdownFile(
+	"/home/naitry/Dev/GAIT/Packages/Blu/resources/TextFragments/FunctionalDescriptions/selfImage.md")
+
+
 class PersonaComponent(InformationFragment):
-    def __init__(self,
-                 body: str = "",
-                 name: str = "",
-                 functionalDescription: str = "",
-                 embedding: list[float] = None):
-        super().__init__(body=body,
+	def __init__(self,
+				 body: str = "",
+				 name: str = "",
+				 functionalDescription: str = "",
+				 embedding: list[float] = None):
+		super().__init__(body=body,
 						 embedding=embedding)
-        self.name: str = name
-        self.functionalDescription: str = functionalDescription
+		self.name: str = name
+		self.functionalDescription: str = functionalDescription
 
 
 class Persona(ABC):
@@ -23,10 +33,13 @@ class Persona(ABC):
 				 convo: LLMConvo = OAIConvo1_3_8()):
 		self.name: str = ""
 		self.primaryInstruction: str = ""
-		self.selfImage: PersonaComponent = PersonaComponent()
+		self.selfImage: PersonaComponent = PersonaComponent(functionalDescription=selfImageFunctionalDescription)
 		self.unconsciousBody: PersonaComponent = PersonaComponent()
 		self.thoughtRecord: list[InformationFragment] = []
-		self.convo = convo
+		self.actionRecord: list[InformationFragment] = []
+		self.convo: LLMConvo = convo
+		self.thoughtDepth: int = 4
+		self.freshThoughts: int = 0
 
 	def loadFromFile(self,
 					 file_path: str) -> None:
@@ -88,7 +101,7 @@ class Persona(ABC):
 		self.convo.addSystemMessage("Your name is " + self.name)
 		self.convo.addSystemMessage(self.primaryInstruction)
 		self.convo.addSystemMessage("Your concept of self is:: " + self.selfImage.body)
-		self.convo.addSystemMessage("Your recent record of thought is:: " + self.concentrateThought())
+		self.convo.addSystemMessage("Your recent record of thought is:: " + self.concatenateThoughts(self.thoughtDepth))
 
 	def condenseFragment(self,
 						 inputFragment: InformationFragment) -> InformationFragment:
@@ -97,5 +110,39 @@ class Persona(ABC):
 		self.convo.addUserMessage(inputFragment.body)
 		return InformationFragment(self.convo.requestResponse())
 
-	def concentrateThought(self) -> str:
-		return '\n'.join(fragment.body for fragment in self.thoughtRecord)
+	def sayTo(self,
+			  name: Optional[str] = None,
+			  inputFragment: InformationFragment = InformationFragment()) -> InformationFragment:
+		self.buildConvo()
+
+		self.convo.addSystemMessage(sayToCommand1)
+		userMessage: str = name + " says: " + inputFragment.body if name else "Someone says: " + inputFragment.body
+		self.convo.addUserMessage(userMessage)
+		self.actionRecord.append(InformationFragment(userMessage))
+		responseThought: InformationFragment = InformationFragment(self.convo.requestResponse(addToConvo=True))
+
+		self.thoughtRecord.append(responseThought)
+		self.freshThoughts += 1
+		thoughtAsAction: InformationFragment = InformationFragment("You think: " + responseThought.body)
+		self.actionRecord.append(thoughtAsAction)
+
+		self.convo.addSystemMessage(sayToCommand2)
+		self.convo.addUserMessage("**RESPOND**")
+		response: InformationFragment = InformationFragment(self.convo.requestResponse(addToConvo=True))
+		responseAsAction: InformationFragment = InformationFragment("You say: " + response.body)
+		self.actionRecord.append(responseAsAction)
+		if self.freshThoughts >= 3:
+			self.selfReflect()
+		return response
+
+	def selfReflect(self) -> None:
+		self.buildConvo()
+		self.convo.addSystemMessage(reflectCommand)
+		self.convo.addUserMessage(self.selfImage.body)
+		self.selfImage.body = self.convo.requestResponse()
+		self.freshThoughts = 0
+
+	def concatenateThoughts(self, depth: int) -> str:
+		last_n_thoughts = self.thoughtRecord[-depth:] if len(self.thoughtRecord) >= depth else self.thoughtRecord
+
+		return '\n'.join(fragment.body for fragment in last_n_thoughts)
