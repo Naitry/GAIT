@@ -1,12 +1,12 @@
-from AIMCard import CardType
+from openai import OpenAI
+
 import AIMCard
 from typing import List, Optional
-from LLMConversation import LLMConvo
-from LLMConversation import readMarkdownFile
-from AIMImageGeneration import SDXLGenerator
-from AIMImageGeneration import GenerationOption
-from PIL import Image
+from Blu.LLM.LLMConversation import LLMConvo
+from Blu.OpenAI.OAIConvo import OAIConvo1_3_8
+from Blu.Utils.Utils import readMarkdownFile
 
+key: str = readMarkdownFile("/home/naitry/Dev/GAIT/3Magi/markdown/key.md")
 
 class AIMWorld:
     def __init__(self,
@@ -18,7 +18,8 @@ class AIMWorld:
         self.numLands: int = 5
 
     def generateGPTDescription(self) -> str:
-        generationConvo: LLMConvo = LLMConvo()
+        generationConvo: LLMConvo = OAIConvo1_3_8(OpenAI(api_key=key),
+                                                  model="gpt-3.5-turbo")
         generationConvo.addSystemMessage(readMarkdownFile("../Prompts/WorldPrompts/GenerateWorld.md"))
 
         generationConvo.addUserMessage(self.userDescription)
@@ -27,7 +28,8 @@ class AIMWorld:
         return self.gptDescription
 
     def generateImagePrompt(self) -> str:
-        generationConvo: LLMConvo = LLMConvo()
+        generationConvo: LLMConvo = OAIConvo1_3_8(OpenAI(api_key=key),
+                                                  model="gpt-3.5-turbo")
         generationConvo.addSystemMessage(readMarkdownFile("../Prompts/WorldPrompts/WorldToImagePrompt.md"))
 
         generationConvo.addUserMessage(self.userDescription)
@@ -40,7 +42,8 @@ class AIMWorld:
         response: str
         parsedCard: Optional[AIMCard.LandCard]  # Assuming MAICard.parseLandCard returns Optional[LandCard]
 
-        generationConvo: LLMConvo = LLMConvo()
+        generationConvo: LLMConvo = OAIConvo1_3_8(OpenAI(api_key=key),
+                                                  model="gpt-3.5-turbo")
         prompt: str = readMarkdownFile("../Prompts/WorldPrompts/LandPrompts/GenerateLand.md") + self.gptDescription
 
         if self.Lands:

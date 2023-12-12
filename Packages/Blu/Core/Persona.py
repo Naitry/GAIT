@@ -1,11 +1,14 @@
 import json
 from typing import Optional
 
+from openai import OpenAI
+
 from Blu.Utils.Utils import readMarkdownFile
 from Blu.LLM.LLMConversation import LLMConvo
 from Blu.OpenAI.OAIConvo import OAIConvo1_3_8
 from Blu.Core.Information import InformationFragment
 from abc import ABC
+from datetime import datetime
 
 condenseFragmentCommand = readMarkdownFile(
 	"/home/naitry/Dev/GAIT/Packages/Blu/resources/TextFragments/Commands/condenseFragment.md")
@@ -28,9 +31,12 @@ class PersonaComponent(InformationFragment):
 		self.functionalDescription: str = functionalDescription
 
 
+key: str = readMarkdownFile("/home/naitry/Dev/GAIT/3Magi/markdown/key.md")
+
+
 class Persona(ABC):
 	def __init__(self,
-				 convo: LLMConvo = OAIConvo1_3_8()):
+				 convo: LLMConvo = OAIConvo1_3_8(OpenAI(api_key=key))):
 		self.name: str = ""
 		self.primaryInstruction: str = ""
 		self.selfImage: PersonaComponent = PersonaComponent(functionalDescription=selfImageFunctionalDescription)
@@ -81,7 +87,7 @@ class Persona(ABC):
 
 	def convertDictToConvo(self,
 						   convo_data: dict) -> LLMConvo:
-		convo = OAIConvo1_3_8()
+		convo = OAIConvo1_3_8(OpenAI(api_key=key))
 
 		for message in convo_data.get("messages", []):
 			role = message.get("role")
@@ -140,9 +146,14 @@ class Persona(ABC):
 		self.convo.addSystemMessage(reflectCommand)
 		self.convo.addUserMessage(self.selfImage.body)
 		self.selfImage.body = self.convo.requestResponse()
+		self.selfImage.embed(OpenAI(api_key=key))
+		self.saveToFile("/home/naitry/Dev/GAIT/3Magi/markdown/personalities/" + self.name + datetime.now().strftime(
+			"%Y-%m-%d %H:%M:%S") + '.md')
 		self.freshThoughts = 0
 
-	def concatenateThoughts(self, depth: int) -> str:
+	def concatenateThoughts(self,
+							depth: int) -> str:
 		last_n_thoughts = self.thoughtRecord[-depth:] if len(self.thoughtRecord) >= depth else self.thoughtRecord
 
-		return '\n'.join(fragment.body for fragment in last_n_thoughts)
+		return '\n'.join(
+			fragment['body'] if isinstance(fragment, dict) else fragment.body for fragment in last_n_thoughts)

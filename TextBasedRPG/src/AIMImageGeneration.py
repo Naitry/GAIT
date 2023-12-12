@@ -18,7 +18,7 @@ class SDXLGenerator:
 
     def __init__(self):
         # Initialize the base pipeline model
-        self.basePipe = DiffusionPipeline.from_pretrained("stabilityai/stable-diffusion-xl-base-1.0",
+        self.basePipe = DiffusionPipeline.from_pretrained("../Models/stable-diffusion-xl-base-1.0",
                                                           torch_dtype=torch.float16,
                                                           use_safetensors=True,
                                                           variant="fp16")

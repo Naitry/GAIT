@@ -30,13 +30,9 @@ class StringEmbedding:
         print("Min: " + str(min(self.embeddingVector)))
 
 
-
 embedding: StringEmbedding = StringEmbedding(inputString="Tyler Steffen")
 embedding.retrieveEmbedding(client=Client)
 embedding.printEmbedding()
-
-
-
 
 
 def normalize_vectors(vectors):

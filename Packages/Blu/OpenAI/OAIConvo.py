@@ -10,11 +10,12 @@ from Blu.Utils.Utils import readMarkdownFile
 
 
 class OAIConvo1_3_8(LLMConvo):
-    def __init__(self) -> None:
+    def __init__(self,
+                 client: openai.OpenAI,
+                 model:str = "gpt-4-1106-preview") -> None:
         super().__init__()
-        key: str = readMarkdownFile("/home/naitry/Dev/GAIT/3Magi/markdown/key.md")
-        # print("key: " + key)
-        self.client: openai.Client = OpenAI(api_key=key)
+        self.client = client
+        self.model: str = model
 
     def addSystemMessage(self,
                          message: str) -> None:
@@ -46,7 +47,7 @@ class OAIConvo1_3_8(LLMConvo):
     def requestResponse(self,
                         addToConvo: bool = False) -> str:
         response: Any = self.client.chat.completions.create(
-            model="gpt-4-1106-preview",
+            model=self.model,
             messages=self.formattedMessages(),
             temperature=1,
             max_tokens=256,

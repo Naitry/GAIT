@@ -1,12 +1,17 @@
 from enum import Enum
 from typing import Dict, Any, List, Union, Optional
 import json
-from LLMConversation import LLMConvo
-from LLMConversation import readMarkdownFile
 from PIL import Image
+from openai import OpenAI
+
 from AIMImageGeneration import SDXLGenerator
 from AIMImageGeneration import generateClipDropImage
 from AIMImageGeneration import GenerationOption
+from Blu.LLM.LLMConversation import LLMConvo
+from Blu.OpenAI.OAIConvo import OAIConvo1_3_8
+from Blu.Utils.Utils import readMarkdownFile
+
+key: str = readMarkdownFile("/home/naitry/Dev/GAIT/3Magi/markdown/key.md")
 
 class CardType(Enum):
     """Enum for card types."""
@@ -108,7 +113,8 @@ class LandCard:
         return jsonString
 
     def generateImageString(self, worldDescription: str):
-        generationConvo: LLMConvo = LLMConvo()
+        generationConvo: LLMConvo = OAIConvo1_3_8(OpenAI(api_key=key),
+                                                  model="gpt-3.5-turbo")
 
         generationConvo.addSystemMessage(readMarkdownFile("../Prompts/WorldPrompts/LandPrompts/LandToImagePrompt.md") +
                                          worldDescription)
