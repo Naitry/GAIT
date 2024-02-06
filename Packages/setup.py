@@ -1,9 +1,18 @@
 from setuptools import setup, find_packages
 
 setup(
-    name='Blu',
-    version='0.01',
-    packages=find_packages(),
-    install_requires=[
-    ],
+	name='Blu',
+	version='0.01',
+	packages=find_packages(),
+	install_requires=["openai-whisper>=20231117 ",
+					  "elevenlabs>=0.2.27",
+					  "matplotlib>=3.8.2",
+					  "openai>=1.11.0",
+					  "flask>=2.3.3",
+					  "transformers>=4.37.2",
+					  "datasets>=2.16.1"],
 )
+
+
+# sudo pacman -S python-openai python-flask python-matplotlib python-numpy
+# yay -S python-elevenlabs whisper-git python-transformers python-datasets

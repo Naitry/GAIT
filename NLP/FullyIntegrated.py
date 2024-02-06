@@ -1,15 +1,12 @@
 from elevenlabs import generate, play
 import whisper
 
-model = whisper.load_model("base")
-result = model.transcribe("audio file")
-outputText = result["text"]
+model: whisper.Whisper = whisper.load_model("base")
+result: dict[str, str | list[dict[str, int]]] = model.transcribe("audio file")
+outputText: str = result["text"]
 
-
-audio = generate{
-        text ="Hey, my name is Clyde!",
-        voice="Clyde",
-        model="eleven_monolinqual_v1"
-        }
-
-play(audio)
+# audio: bytes = generate(text="Hey, my name is Clyde!",
+# 						voice="Clyde",
+# 						model="eleven_monolingual_v1")
+#
+# play(audio)
