@@ -1,8 +1,8 @@
 from typing import Any, Dict, List
 from typing import Optional
-import Blu.Utils
+import Blu.Utils as Utils
 from Blu.Utils.Utils import readMarkdownFile
-import Blu.GPTAssistant as GPTAssistant
+import Blu.OpenAI.GPTAssistant as GPTAssistant
 from openai import OpenAI
 import openai
 import time
