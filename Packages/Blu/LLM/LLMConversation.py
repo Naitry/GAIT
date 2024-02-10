@@ -28,7 +28,8 @@ class LLMConvo(ABC):
 
 	@abstractmethod
 	def requestResponse(self,
-						addToConvo: bool = False) -> str:
+						addToConvo: bool = False,
+						maxTokens: int = 256) -> str:
 		pass
 
 	def currentDateTime(self) -> str:

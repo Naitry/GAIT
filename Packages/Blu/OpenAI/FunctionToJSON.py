@@ -1,5 +1,12 @@
 import json
-from typing import Any, Type, Callable, Dict, get_args, get_origin, List
+from typing import Any, \
+	Type, \
+	Callable, \
+	Dict, \
+	get_args, \
+	get_origin, \
+	List, \
+	Optional
 import inspect
 
 
@@ -12,10 +19,10 @@ def pythonTypeToJsonSchema(pythonType: Type[Any]) -> str:
 	"""
 	# Define a mapping of Python types to JSON schema types
 	typeMapping: dict[Type[Any], str] = {
-		bool: 'boolean',
-		int: 'integer',
-		float: 'number',
-		str: 'string',
+		bool      : 'boolean',
+		int       : 'integer',
+		float     : 'number',
+		str       : 'string',
 		type(None): 'null'  # Handle the NoneType for optional type annotations
 	}
 
@@ -24,7 +31,7 @@ def pythonTypeToJsonSchema(pythonType: Type[Any]) -> str:
 		return typeMapping[pythonType]
 
 	# Handle generic types from typing module
-	originType: Type[Any] | None = get_origin(pythonType)
+	originType: Optional[Type[Any]] = get_origin(pythonType)
 	if originType:
 		# Example for List, Dict; you can extend this as needed
 		if issubclass(originType,
@@ -194,14 +201,14 @@ def generateToolsConfig(function: Callable[..., Any]) -> str:
 												   paramDescriptions=paramDescriptions)
 
 	tool: Dict[str, Any] = {
-		"type": "function",
+		"type"    : "function",
 		"function": {
-			"name": functionName,
+			"name"       : functionName,
 			"description": docstring,
-			"parameters": {
-				"type": "object",
+			"parameters" : {
+				"type"      : "object",
 				"properties": properties,
-				"required": requiredList
+				"required"  : requiredList
 			}
 		}
 	}

@@ -1,5 +1,4 @@
 from Blu.Core.Persona import Persona
-from Blu.Core.Information import InformationFragment
 from Blu.Utils.Utils import readMarkdownFile
 magi: Persona = Persona()
 

@@ -7,12 +7,14 @@ setup(
 	install_requires=["openai-whisper>=20231117 ",
 					  "elevenlabs>=0.2.27",
 					  "matplotlib>=3.8.2",
-					  "openai>=1.11.0",
+					  "openai>=1.1.0",
 					  "flask>=2.3.3",
 					  "transformers>=4.37.2",
-					  "datasets>=2.16.1"],
+					  "datasets>=2.16.1",
+					  "gevent>=23.9.1"],
+	python_requires='>=3.10'
 )
 
 
-# sudo pacman -S python-openai python-flask python-matplotlib python-numpy
+# sudo pacman -S python-openai python-flask python-flask-cors python-matplotlib python-numpy
 # yay -S python-elevenlabs whisper-git python-transformers python-datasets

@@ -5,14 +5,14 @@ from Blu.Core.Persona import Persona
 from Blu.Core.Information import InformationFragment
 
 app = Flask(__name__)
-CORS(app)  # Enable CORS
+CORS(app)
 
 # Initialize and load the model
 magi = Persona()
 magi.loadFromFile("/home/naitry/Dev/GAIT/3Magi/markdown/personalities/Caspar2023-12-12 02:24:22.md")
 
 @app.route('/get_self_image_embedding', methods=['GET'])
-def get_self_image_embedding():
+def getSelfImageEmbedding():
     """
     Endpoint to retrieve the self-image embedding vector.
     """
@@ -23,7 +23,7 @@ def get_self_image_embedding():
     return jsonify({"embedding": embedding})
 
 @app.route('/sayto', methods=['POST'])
-def say_to():
+def sayTo():
     """
     Endpoint to interact with the Persona model.
     """
