@@ -16,5 +16,5 @@ setup(
 )
 
 
-# sudo pacman -S python-openai python-flask python-flask-cors python-matplotlib python-numpy
+# sudo pacman -S python-openai python-flask python-flask-cors python-matplotlib python-numpy python-gevent
 # yay -S python-elevenlabs whisper-git python-transformers python-datasets

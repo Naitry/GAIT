@@ -1,13 +1,14 @@
+# Typing
 from typing import Dict
-import Blu.OpenAI.OAIConvo as convo
 from enum import Enum
+
+# Blu
 from Blu.Core.Persona import Persona
-from Blu.Core.Information import InformationFragment
 
 
 class AppState(Enum):
-	STANDARD = "standard"
-
+	STARTUP = 1
+	STANDARD = 2
 
 promptStrings: Dict[AppState, str] = {
 	AppState.STANDARD: "please input the ", }
@@ -16,15 +17,17 @@ promptStrings: Dict[AppState, str] = {
 def main():
 	running: bool = True
 	state: AppState = AppState.STANDARD
-	welcomeText: str = ""
-	magi: Persona = Persona()
-
-	magi.loadFromFile()
+	magi: Persona
 
 	while running:
-		userInput = input("")
-		pass
+		match state:
+			case AppState.STARTUP:
 
+				pass
+			case AppState.STANDARD:
+				pass
+			case _:
+				pass
 
 if __name__ == "__main__":
 	main()

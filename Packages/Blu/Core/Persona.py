@@ -1,14 +1,18 @@
+# Typing
 import json
 from typing import Optional
 
+# Time
+from datetime import datetime
+
+# OpenAI
 from openai import OpenAI
 
+# Blu
 from Blu.Utils.Utils import readMarkdownFile
 from Blu.LLM.LLMConversation import LLMConvo
 from Blu.OpenAI.OAIConvo import OAIConvo1_3_8
-from Blu.Core.Information import InformationFragment as InfoFrag
-from abc import ABC
-from datetime import datetime
+from Blu.Core.Information import InformationFragment
 
 condenseFragmentCommand = readMarkdownFile("/home/naitry/Dev/GAIT/Packages/Blu/resources/TextFragments/Commands/condenseFragment.md")
 reflectCommand = readMarkdownFile("/home/naitry/Dev/GAIT/Packages/Blu/resources/TextFragments/Commands/selfReflect.md")
@@ -17,15 +21,15 @@ sayToCommand2 = readMarkdownFile("/home/naitry/Dev/GAIT/Packages/Blu/resources/T
 selfImageFunctionalDescription = readMarkdownFile("/home/naitry/Dev/GAIT/Packages/Blu/resources/TextFragments/FunctionalDescriptions/selfImage.md")
 
 
-class PersonaComponent(InfoFrag):
+class PersonaComponent(InformationFragment):
 	def __init__(self,
-				 body: str = "",
 				 name: str = "",
-				 functionalDescription: str = "",
-				 embedding: list[float] = None):
-		super().__init__(body=body,
+				 body: str = "",
+				 embedding: list[float] = None,
+				 functionalDescription: str = ""):
+		super().__init__(name=name,
+						 body=body,
 						 embedding=embedding)
-		self.name: str = name
 		self.functionalDescription: str = functionalDescription
 
 
@@ -78,16 +82,16 @@ def convertDictToObjects(data: dict) -> dict:
 	return data
 
 
-class Persona(InfoFrag):
+class Persona(InformationFragment):
 	def __init__(self,
+				 name: str,
 				 convo: LLMConvo = OAIConvo1_3_8(OpenAI(api_key=KEY))):
-		super().__init__()
-		self.name: str = ""
+		super().__init__(name=name)
 		self.primaryInstruction: str = ""
 		self.selfImage: PersonaComponent = PersonaComponent(functionalDescription=selfImageFunctionalDescription)
 		self.unconsciousBody: PersonaComponent = PersonaComponent()
-		self.thoughtRecord: list[InfoFrag] = []
-		self.actionRecord: list[InfoFrag] = []
+		self.thoughtRecord: list[InformationFragment] = []
+		self.actionRecord: list[InformationFragment] = []
 		self.convo: LLMConvo = convo
 		self.thoughtDepth: int = 4
 		self.freshThoughts: int = 0
@@ -121,32 +125,32 @@ class Persona(InfoFrag):
 		self.convo.addSystemMessage("Your recent record of thought is:: " + self.concatenateThoughts(self.thoughtDepth))
 
 	def condenseFragment(self,
-						 inputFragment: InfoFrag) -> InfoFrag:
+						 inputFragment: InformationFragment) -> InformationFragment:
 		self.buildConvo()
 		self.convo.addSystemMessage(condenseFragmentCommand)
 		self.convo.addUserMessage(inputFragment.body)
-		return InfoFrag(self.convo.requestResponse())
+		return InformationFragment(self.convo.requestResponse())
 
 	def sayTo(self,
-			  name: Optional[str] = None,
-			  inputFragment: InfoFrag = InfoFrag()) -> InfoFrag:
+			  inputFragment: InformationFragment,
+			  name: Optional[str] = None) -> InformationFragment:
 		self.buildConvo()
 
 		self.convo.addSystemMessage(sayToCommand1)
 		userMessage: str = name + " says: " + inputFragment.body if name else "Someone says: " + inputFragment.body
 		self.convo.addUserMessage(userMessage)
-		self.actionRecord.append(InfoFrag(userMessage))
-		responseThought: InfoFrag = InfoFrag(self.convo.requestResponse(addToConvo=True))
+		self.actionRecord.append(InformationFragment(userMessage))
+		responseThought: InformationFragment = InformationFragment(self.convo.requestResponse(addToConvo=True))
 
 		self.thoughtRecord.append(responseThought)
 		self.freshThoughts += 1
-		thoughtAsAction: InfoFrag = InfoFrag("You think: " + responseThought.body)
+		thoughtAsAction: InformationFragment = InformationFragment("You think: " + responseThought.body)
 		self.actionRecord.append(thoughtAsAction)
 
 		self.convo.addSystemMessage(sayToCommand2)
 		self.convo.addUserMessage("**RESPOND**")
-		response: InfoFrag = InfoFrag(self.convo.requestResponse(addToConvo=True))
-		responseAsAction: InfoFrag = InfoFrag("You say: " + response.body)
+		response: InformationFragment = InformationFragment(self.convo.requestResponse(addToConvo=True))
+		responseAsAction: InformationFragment = InformationFragment("You say: " + response.body)
 		self.actionRecord.append(responseAsAction)
 		if self.freshThoughts >= 3:
 			self.selfReflect()
