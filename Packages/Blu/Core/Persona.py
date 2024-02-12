@@ -2,6 +2,9 @@
 import json
 from typing import Optional
 
+# File imports
+from importlib.resources import files
+
 # Time
 from datetime import datetime
 
@@ -14,11 +17,11 @@ from Blu.LLM.LLMConversation import LLMConvo
 from Blu.OpenAI.OAIConvo import OAIConvo1_3_8
 from Blu.Core.Information import InformationFragment
 
-condenseFragmentCommand = readMarkdownFile("/home/naitry/Dev/GAIT/Packages/Blu/resources/TextFragments/Commands/condenseFragment.md")
-reflectCommand = readMarkdownFile("/home/naitry/Dev/GAIT/Packages/Blu/resources/TextFragments/Commands/selfReflect.md")
-sayToCommand1 = readMarkdownFile("/home/naitry/Dev/GAIT/Packages/Blu/resources/TextFragments/Commands/sayTo.md")
-sayToCommand2 = readMarkdownFile("/home/naitry/Dev/GAIT/Packages/Blu/resources/TextFragments/Commands/sayToPt2.md")
-selfImageFunctionalDescription = readMarkdownFile("/home/naitry/Dev/GAIT/Packages/Blu/resources/TextFragments/FunctionalDescriptions/selfImage.md")
+condenseFragmentCommand = readMarkdownFile(files('TextFragments') / 'Commands' / 'condenseFragment.md')
+reflectCommand = readMarkdownFile(files('TextFragments') / 'Commands' / 'selfReflect.md')
+sayToCommand1 = readMarkdownFile(files('TextFragments') / 'Commands' / 'sayTo.md')
+sayToCommand2 = readMarkdownFile(files('TextFragments') / 'Commands' / 'sayToPt2.md')
+selfImageFunctionalDescription = readMarkdownFile(files('TextFragments') / 'Commands' / 'selfImage.md')
 
 
 class PersonaComponent(InformationFragment):

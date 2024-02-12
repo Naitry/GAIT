@@ -14,4 +14,4 @@ for question in questionList:
 	print(magi.sayTo(name="Tyler",
 					 inputFragment=InformationFragment(question)).body)
 
-magi.saveToFile("../markdown/personalities/CasparOut2_GPT4.md")
+magi.saveToFile("../markdown/Archive/personalitySaves/CasparOut2_GPT4.md")

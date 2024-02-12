@@ -1,17 +1,20 @@
-import csv
-from importlib.abc import Traversable
+# Typing
 from typing import Tuple, Dict
+
+# Files imports
+import csv
 from importlib.resources import files
+from importlib.abc import Traversable
 
 # Global dictionary to store color data
 BLU_CM_ColorHexMap: Dict[str, str] = {}
 
-BLU_CM_ResourcePath: Traversable = files("data") / 'colornames.csv'  # Adjust the package path as needed
+BLU_CM_ResourcePath: Traversable = files("data") / 'colornames.csv'
 
 with BLU_CM_ResourcePath.open(mode='r',
 							  encoding='utf-8') as file:
 	csvReader = csv.reader(file)
-	next(csvReader)  # Skip header
+	next(csvReader)
 	for row in csvReader:
 		if len(row) >= 2:
 			name: str = row[0].lower().strip()
@@ -21,10 +24,10 @@ with BLU_CM_ResourcePath.open(mode='r',
 			BLU_CM_ColorHexMap[key] = hexValue
 
 
-def printFirstNColors(num_entries: int) -> None:
+def printFirstNColors(n: int) -> None:
 	"""Print the first n entries in the color_hex_map."""
 	for i, (key, value) in enumerate(BLU_CM_ColorHexMap.items()):
-		if i >= num_entries:
+		if i >= n:
 			break
 		print(f"Key: {key}, Value: {value}")
 
