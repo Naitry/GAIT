@@ -4,11 +4,10 @@ import Blu.Utils as Utils
 from Blu.Utils.Utils import readMarkdownFile
 import Blu.OpenAI.GPTAssistant as GPTAssistant
 from openai import OpenAI
+from anthropic import Anthropic
 import openai
 import time
 import json
-
-Utils.setAPIEnvVar()
 
 client = OpenAI()
 
